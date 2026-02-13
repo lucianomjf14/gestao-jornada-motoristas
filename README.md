@@ -1,9 +1,14 @@
-<h1 align="center">
-  🚛 Gestão de Jornada — Motoristas
+﻿<h1 align="center">
+   Gestão de Jornada  Motoristas
 </h1>
 
 <p align="center">
-  <strong>Sistema web completo para gestão de jornada, treinamento e certificação de motoristas de frota</strong>
+  <strong>MVP de sistema web para gestão de jornada, treinamento e certificação de motoristas de frota</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-MVP_v2.0.0-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Fase-Validação-orange?style=for-the-badge" />
 </p>
 
 <p align="center">
@@ -15,6 +20,7 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/github/v/release/lucianomjf14/gestao-jornada-motoristas?style=flat-square&label=release" />
   <img src="https://img.shields.io/github/license/lucianomjf14/gestao-jornada-motoristas?style=flat-square" />
   <img src="https://img.shields.io/github/last-commit/lucianomjf14/gestao-jornada-motoristas?style=flat-square" />
   <img src="https://img.shields.io/github/repo-size/lucianomjf14/gestao-jornada-motoristas?style=flat-square" />
@@ -22,11 +28,13 @@
 
 ---
 
-## 📋 Sobre o Projeto
+##  Sobre o Projeto
 
-Sistema web desenvolvido para uma transportadora real, atendendo **+200 motoristas** em operação rodoviária. A plataforma digitaliza todo o fluxo de treinamento obrigatório, controle de jornada e emissão de certificados — substituindo processos manuais em papel.
+**MVP funcional** desenvolvido para uma transportadora real, atendendo **+200 motoristas** em operação rodoviária. A plataforma digitaliza o fluxo completo de treinamento obrigatório, controle de jornada e emissão de certificados  substituindo processos manuais em papel.
 
-### 🎯 Problema
+>  **Este é um MVP (Minimum Viable Product).** O foco desta versão foi **validar o modelo de negócio** e entregar valor ao usuário final o mais rápido possível. O roadmap de evolução técnica está documentado abaixo.
+
+###  Problema
 
 Transportadoras enfrentam:
 - Controle de treinamentos via planilha (perda de dados, retrabalho)
@@ -34,10 +42,10 @@ Transportadoras enfrentam:
 - Dificuldade de comunicação com motoristas em trânsito
 - Nenhuma visibilidade sobre taxa de conclusão por empresa/filial
 
-### 💡 Solução
+###  Solução
 
 Plataforma web responsiva (mobile-first) com:
-- Login diferenciado (motorista via CPF / admin via Google)
+- Autenticação dupla (motorista via CPF + Código / admin via Google OAuth)
 - Dashboard administrativo em tempo real
 - Sistema de cursos com vídeo + quiz
 - Certificados digitais com QR Code
@@ -45,11 +53,11 @@ Plataforma web responsiva (mobile-first) com:
 
 ---
 
-## 🏗️ Arquitetura
+##  Arquitetura do MVP
 
 ```mermaid
 flowchart LR
-    subgraph Frontend
+    subgraph Frontend["Frontend (HTML/JS/CSS)"]
         A[Login] --> B{Perfil}
         B -->|Motorista| C[Portal do Motorista]
         B -->|Admin| D[Painel Administrativo]
@@ -62,10 +70,10 @@ flowchart LR
         D --> K[Comunicados]
     end
 
-    subgraph Backend
-        L[(Firebase Realtime DB)]
-        M[Firebase Auth]
-        N[Firebase Hosting]
+    subgraph Backend["Backend (Firebase)"]
+        L[(Realtime DB)]
+        M[Auth]
+        N[Hosting]
     end
 
     C & D <--> L
@@ -73,65 +81,99 @@ flowchart LR
     Frontend --> N
 ```
 
+### Fluxo de Autenticação (v2.0.0)
+
+```mermaid
+flowchart TD
+    U([Usuário]) --> CHOICE{Perfil?}
+
+    CHOICE -->|Motorista| LOGIN_M[login.html]
+    LOGIN_M --> INPUT[CPF + Código de Acesso 6 chars]
+    INPUT --> VALIDATE[firebaseValidateDriverLogin]
+    VALIDATE --> CHECK{CPF + Código<br/>+ Status ativo?}
+    CHECK -->|Não| DENY[ Acesso negado]
+    CHECK -->|Sim| SESSION[Gera token sessão TTL 24h]
+    SESSION --> PORTAL([Portal do Motorista])
+
+    CHOICE -->|Gestor / RH| LOGIN_A[admin.html]
+    LOGIN_A --> GOOGLE[Google OAuth<br/>signInWithPopup]
+    GOOGLE --> DOMAIN{Email @empresa<br/>autorizado?}
+    DOMAIN -->|Não| DENY_A[ Domínio negado]
+    DOMAIN -->|Sim| PANEL([Painel Admin])
+
+    LOGIN_A --> PWD_ALT[Senha Master<br/>alternativa]
+    PWD_ALT --> CHECK_PWD{Senha válida?}
+    CHECK_PWD -->|Sim| PANEL
+    CHECK_PWD -->|Não| DENY_PWD[ Incorreta]
+
+    style PORTAL fill:#3B82F6,stroke:#1D4ED8,color:#FFF
+    style PANEL fill:#059669,stroke:#047857,color:#FFF
+    style DENY fill:#EF4444,stroke:#DC2626,color:#FFF
+    style DENY_A fill:#EF4444,stroke:#DC2626,color:#FFF
+    style DENY_PWD fill:#EF4444,stroke:#DC2626,color:#FFF
+```
+
+>  Documentação técnica completa: [`docs/ARQUITETURA_AUTENTICACAO.md`](docs/ARQUITETURA_AUTENTICACAO.md)
+
 ---
 
-## ✨ Funcionalidades
+##  Funcionalidades
 
 | Módulo | Descrição | Destaque Técnico |
 |--------|-----------|------------------|
-| 🔐 **Login Duplo** | Motorista (CPF) · Admin (Google OAuth) | Autenticação Firebase com domínio restrito |
-| 📊 **Dashboard Admin** | KPIs em tempo real por empresa | Listeners `onValue` com atualização automática |
-| 🎓 **Treinamentos** | Cursos com vídeo, quiz e progresso | Validação de conclusão por etapa |
-| 📜 **Certificados** | Geração automática com QR Code | Renderização canvas + `html2canvas` |
-| 📖 **Guia do Motorista** | Conteúdo educacional com imagens | Layout Tailwind CSS responsivo |
-| 📝 **Diário de Bordo** | Registro digital de viagens | Formulário com validação client-side |
-| 📢 **Comunicados** | Avisos com contatos WhatsApp | Cards interativos com links diretos |
-| ❓ **FAQ** | Perguntas frequentes com accordion | Animações CSS puras |
-| 📋 **Tabela de Motoristas** | Lista completa com status | Filtros dinâmicos por empresa |
+|  **Login Duplo** | Motorista (CPF + Código)  Admin (Google OAuth) | Auth Firebase + código alfanumérico 6 chars |
+|  **Dashboard Admin** | KPIs em tempo real por empresa | Listeners `onValue` com atualização automática |
+|  **Treinamentos** | Cursos com vídeo, quiz e progresso | Validação de conclusão por etapa |
+|  **Certificados** | Geração automática com QR Code | Renderização canvas + `html2canvas` |
+|  **Guia do Motorista** | Conteúdo educacional com imagens | Layout Tailwind CSS responsivo |
+|  **Diário de Bordo** | Registro digital de viagens | Formulário com validação client-side |
+|  **Comunicados** | Avisos com contatos WhatsApp | Cards interativos com links diretos |
+|  **FAQ** | Perguntas frequentes com accordion | Animações CSS puras |
+|  **Tabela de Motoristas** | Lista completa com status | Filtros dinâmicos por empresa |
 
 ---
 
-## 🛠️ Stack Técnica
+##  Stack Técnica
 
 ```
-Frontend       → HTML5 · CSS3 · JavaScript (Vanilla ES6+)
-UI Framework   → Tailwind CSS (via CDN)
-Backend        → Firebase Realtime Database
-Autenticação   → Firebase Authentication (Email/Password + Google OAuth)
-Hospedagem     → Firebase Hosting
-Certificados   → html2canvas · QR Code Generator
-Ícones         → Lucide Icons · Font Awesome
-```
-
----
-
-## 📁 Estrutura do Projeto
-
-```
-├── index.html              # Portal principal do motorista
-├── login.html              # Tela de autenticação
-├── admin.html              # Painel administrativo completo
-├── treinamento.html        # Sistema de cursos e quiz
-├── certificado.html        # Geração de certificados digitais
-├── comunicado2.html        # Central de comunicados
-├── diario_bordo.html       # Registro de diário de bordo
-├── faq.html                # Perguntas frequentes
-├── tabela.html             # Tabela de motoristas
-├── firebase-config.js      # Configuração Firebase (use .env)
-├── drivers.js              # Dados de motoristas
-├── database.rules.json     # Regras de segurança do Realtime DB
-├── .firebaserc             # Configuração de projeto Firebase
-├── firebase.json           # Configuração de deploy
-├── .env.example            # Template de variáveis de ambiente
-├── guia-motorista/         # Guia educacional do motorista
-│   ├── index.html
-│   └── imagens/
-└── imagens/                # Assets visuais
+Frontend        HTML5  CSS3  JavaScript (Vanilla ES6+)
+UI Framework    Tailwind CSS (via CDN)
+Backend         Firebase Realtime Database
+Autenticação    Firebase Authentication (Google OAuth + Código de Acesso)
+Hospedagem      Firebase Hosting
+Certificados    html2canvas  QR Code Generator
+Ícones          Phosphor Icons  Lucide Icons
 ```
 
 ---
 
-## 🚀 Como Executar
+##  Estrutura do Projeto
+
+```
+ index.html              # Portal principal do motorista
+ login.html              # Autenticação (CPF + Código de Acesso)
+ admin.html              # Painel administrativo completo
+ treinamento.html        # Sistema de cursos e quiz
+ certificado.html        # Geração de certificados digitais
+ comunicado2.html        # Central de comunicados
+ diario_bordo.html       # Registro de diário de bordo
+ faq.html                # Perguntas frequentes
+ tabela.html             # Tabela de motoristas
+ firebase-config.js      # Config Firebase + funções de auth/DB
+ drivers.js              # Wrapper de dados de motoristas
+ database.rules.json     # Regras de segurança do Realtime DB
+ .env.example            # Template de variáveis de ambiente
+ docs/
+    ARQUITETURA_AUTENTICACAO.md  # Doc técnico com Mermaid
+ guia-motorista/
+    index.html
+    imagens/
+ imagens/
+```
+
+---
+
+##  Como Executar
 
 ### Pré-requisitos
 - Conta no [Firebase](https://firebase.google.com/)
@@ -171,30 +213,138 @@ firebase emulators:start
 
 ---
 
-## 🔒 Segurança
+##  Segurança
 
-- ✅ Credenciais Firebase via variáveis de ambiente (`.env`)
-- ✅ Regras de banco com autenticação obrigatória
-- ✅ Domínio admin restrito por e-mail
-- ✅ Dados pessoais (CPFs, nomes) não versionados
-- ✅ Logos corporativos removidos (substituídos por placeholders)
+### Implementado (v2.0.0)
 
-> ⚠️ **Nota:** Este repositório é uma versão sanitizada para portfólio. Dados corporativos, credenciais e informações pessoais foram removidos ou substituídos por placeholders.
+-  Login por CPF + Código de Acesso alfanumérico (6 chars, ~729M combinações)
+-  Sessão com TTL de 24 horas (token expira automaticamente)
+-  Guard de sessão em todas as 9 páginas protegidas
+-  Admin restrito por domínio de e-mail (Google OAuth)
+-  Credenciais Firebase via `.env` (não versionadas)
+-  Dados pessoais (CPFs, nomes reais) removidos do repositório
+
+### Limitações conhecidas do MVP
+
+-  Regras de banco permissivas (`auth != null`  requer refinamento por nó)
+-  Código de acesso armazenado em plain text (sem hash)
+-  Sem rate limiting nas tentativas de login
+-  Session token usa `Math.random()` (não criptográfico)
+
+> Estas limitações são aceitáveis para a fase de MVP/validação e estão mapeadas no roadmap de evolução.
 
 ---
 
-## 📈 Resultados
+##  Resultados
 
 - **+200 motoristas** cadastrados e treinados
-- **100% digital** — eliminação de processos em papel
+- **100% digital**  eliminação de processos em papel
 - **Dashboard em tempo real** com taxa de conclusão por empresa
 - **Certificados rastreáveis** via QR Code
 
 ---
 
-## 📄 Licença
+##  Roadmap de Evolução
+
+### Maturidade Atual: MVP Funcional
+
+```mermaid
+graph LR
+    V1["v1.0.0<br/>MVP Inicial<br/> Concluído"] --> V2["v2.0.0<br/>Auth por Código<br/> Concluído"]
+    V2 --> V3["v3.0.0<br/>Refatoração<br/> Planejado"]
+    V3 --> V4["v4.0.0<br/>Backend Seguro<br/> Planejado"]
+    V4 --> V5["v5.0.0<br/>Produção<br/> Futuro"]
+
+    style V1 fill:#059669,stroke:#047857,color:#FFF
+    style V2 fill:#059669,stroke:#047857,color:#FFF
+    style V3 fill:#3B82F6,stroke:#1D4ED8,color:#FFF
+    style V4 fill:#F59E0B,stroke:#D97706,color:#000
+    style V5 fill:#8B5CF6,stroke:#7C3AED,color:#FFF
+```
+
+### v3.0.0  Refatoração Estrutural
+
+| Item | Descrição | Impacto |
+|------|-----------|---------|
+|  Modularização | Extrair CSS e JS dos HTMLs monolíticos para arquivos separados | Manutenibilidade |
+|  Deduplicação | Unificar `imagens/` e `guia-motorista/imagens/` (~7.8 MB) | Tamanho do repo |
+|  Limpeza | Remover `console.log` de produção (~64 ocorrências) | Profissionalismo |
+|  Package.json | Adicionar gestão de dependências e scripts de build | Padronização |
+|  Design System | Extrair componentes reutilizáveis (botões, cards, modais) | Consistência visual |
+
+### v4.0.0  Segurança & Backend
+
+| Item | Descrição | Impacto |
+|------|-----------|---------|
+|  Database Rules | Regras granulares por nó (motorista lê apenas seus dados) | Segurança real |
+|  Hashing | Armazenar `codigoAcesso` e `adminPassword` com bcrypt/SHA-256 | Proteção de credenciais |
+|  Rate Limiting | Cloud Functions para limitar tentativas de login (5/min) | Anti brute-force |
+|  Crypto Token | Substituir `Math.random()` por `crypto.getRandomValues()` | Token seguro |
+|  Cloud Functions | Migrar validações críticas para server-side | Zero trust |
+
+### v5.0.0  Produção & DevOps
+
+| Item | Descrição | Impacto |
+|------|-----------|---------|
+|  Testes | Jest + Testing Library para funções críticas de auth | Confiabilidade |
+|  CI/CD | GitHub Actions (lint  test  deploy Firebase Hosting) | Automação |
+|  Monitoramento | Firebase Analytics + Performance Monitoring | Observabilidade |
+|  Acessibilidade | Audit WCAG 2.1 AA (aria-labels, landmarks, contraste) | Inclusão |
+|  PWA | Service Worker + manifest para uso offline | Motoristas em trânsito |
+
+---
+
+##  Análise de Maturidade
+
+```mermaid
+quadrantChart
+    title Maturidade do Projeto por Dimensão
+    x-axis Baixo --> Alto
+    y-axis Baixo --> Alto
+    quadrant-1 Pronto para escalar
+    quadrant-2 Investir mais
+    quadrant-3 Atenção urgente
+    quadrant-4 Bom para MVP
+
+    Valor de Negócio: [0.85, 0.90]
+    Documentação: [0.75, 0.80]
+    UX e Design: [0.70, 0.75]
+    Funcionalidades: [0.80, 0.70]
+    Autenticação v2: [0.60, 0.65]
+    Responsividade: [0.55, 0.60]
+    Error Handling: [0.50, 0.55]
+    Segurança Backend: [0.25, 0.30]
+    Testes: [0.10, 0.15]
+    CI-CD: [0.10, 0.10]
+    Modularização: [0.20, 0.25]
+```
+
+| Dimensão | Nível | Status |
+|----------|-------|--------|
+|  Valor de negócio |  10/10 | Resolve problema real, +200 usuários |
+|  Documentação |  8/10 | README, Mermaid, doc técnico, releases |
+|  UX / Design |  7/10 | Mobile-first, Tailwind, responsivo |
+|  Funcionalidades |  8/10 | 9 módulos completos e integrados |
+|  Autenticação |  6/10 | v2.0.0 é sólida, mas front-end only |
+|  Testes |  1/10 | Zero cobertura |
+|  CI/CD |  0/10 | Inexistente |
+|  Arquitetura |  3/10 | Monolíticos, sem modularização |
+|  Segurança backend |  2/10 | Rules permissivas, plain text |
+
+---
+
+##  Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+---
+
+## Changelog
+
+| Versão | Data | Descrição |
+|--------|------|-----------|
+| [v2.0.0](https://github.com/lucianomjf14/gestao-jornada-motoristas/releases/tag/v2.0.0) | 13/02/2026 | Auth por Código de Acesso + Session TTL 24h + Guard em 9 páginas |
+| [v1.0.0](https://github.com/lucianomjf14/gestao-jornada-motoristas/releases/tag/v1.0.0) | 12/02/2026 | Release inicial  sistema completo com 9 módulos |
 
 ---
 
