@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tabela de Macros - Controle de Jornada</title>
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            --primary: #0056D2;
+            --primary-dark: #0041a3;
+            --secondary: #F0F4FF;
+            --success: #059669;
+            --warning: #D97706;
+            --danger: #DC2626;
+            --text-main: #111827;
+            --text-secondary: #4B5563;
+            --bg-body: #F9FAFB;
+            --surface: #FFFFFF;
+            --header-height: 60px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header --- */
+        .app-header {
+            background: var(--surface);
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-action {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .header-action:active {
+            background: var(--bg-body);
+        }
+
+        .header-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* --- Hero Section --- */
+        .hero-section {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .hero-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hero-subtitle {
+            opacity: 0.8;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* --- Table Styles --- */
+        .table-container {
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            border: 1px solid #E5E7EB;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        th {
+            padding: 16px 12px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th:last-child {
+            border-right: none;
+        }
+
+        th small {
+            display: block;
+            font-weight: 400;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-transform: none;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #F3F4F6;
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #F9FAFB;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        td {
+            padding: 16px 12px;
+            vertical-align: middle;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Column Styles */
+        .col-situacao {
+            font-weight: 600;
+            background: #F8FAFC;
+            width: 18%;
+        }
+
+        .situacao-main {
+            color: var(--text-main);
+            display: block;
+        }
+
+        .situacao-sub {
+            font-weight: 400;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            display: block;
+        }
+
+        .col-macro {
+            width: 14%;
+            text-align: center;
+        }
+
+        .macro-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            display: inline-block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            box-shadow: 0 2px 8px rgba(0, 86, 210, 0.3);
+        }
+
+        .macro-btn.dark {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        .col-duracao {
+            width: 10%;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .col-fracionar {
+            width: 10%;
+            text-align: center;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .tag-warn {
+            background: #FEF3C7;
+            color: #B45309;
+        }
+
+        .tag-danger {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        .tag-neutral {
+            background: #F3F4F6;
+            color: #6B7280;
+        }
+
+        .col-procedimento {
+            width: 25%;
+        }
+
+        .col-procedimento ol {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .col-procedimento li {
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+        }
+
+        .col-obs {
+            width: 23%;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .highlight-red {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        /* --- Print Button --- */
+        .print-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 86, 210, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 50;
+        }
+
+        .print-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 20px;
+            }
+
+            .hero-title {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media print {
+
+            .app-header,
+            .print-btn,
+            .hero-section {
+                display: none !important;
+            }
+
+            .main-content {
+                padding: 0;
+            }
+
+            .table-container {
+                box-shadow: none;
+                border: none;
+            }
+
+            body {
+                background: white;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-left">
+            <a href="index.html" class="header-action" title="Voltar">
+                <i class="ph ph-arrow-left"></i>
+            </a>
+            <div class="header-title">Tabela de Macros</div>
+        </div>
+        <a href="faq.html" class="header-action" title="Dúvidas">
+            <i class="ph ph-question"></i>
+        </a>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1 class="hero-title">
+                <i class="ph ph-table"></i>
+                Referência Rápida
+            </h1>
+            <p class="hero-subtitle">Consulte qual macro usar em cada situação do dia a dia.</p>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Situação<small>(O que vai fazer)</small></th>
+                            <th>Macro<small>(Botão)</small></th>
+                            <th>Duração<small>Obrigatória</small></th>
+                            <th>Fracionar?</th>
+                            <th>Procedimento<small>Passo a Passo</small></th>
+                            <th>Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Row 1 -->
+                        <tr>
+                            <td class="col-situacao">
+                                <span class="situacao-main">☀️ COMEÇAR O DIA</span>
+                                <span class="situacao-sub">Início do Trabalho</span>
+                            </td>
+                            <td class="col-macro">
+                                <div class="macro-btn">Início de Jornada</div>
+                            </td>
+                            <td class="col-duracao">-</td>
+                            <td class="col-fracionar">
+                                <span class="tag tag-neutral">-</span>
+                            </td>
+                            <td class="col-procedimento">
+                                <ol>
+                                    <li>Entrar na cabine.</li>
+                                    <li>Enviar a Macro.</li>
+                                    <li>Aguardar confirmação.</li>
+                                    <li>Dar a partida.</li>
+                                </ol>
+                            </td>
+                            <td class="col-obs">
+                                <span class="highlight-red">NUNCA</span> movimentar o caminhão sem enviar esta macro.
+                            </td>
+                        </tr>
+
+                        <!-- Row 2 -->
+                        <tr>
+                            <td class="col-situacao">
+                                <span class="situacao-main">☕ DESCANSO DE DIREÇÃO</span>
+                                <span class="situacao-sub">Lei do Motorista</span>
+                            </td>
+                            <td class="col-macro">
+                                <div class="macro-btn">Pausas</div>
+                            </td>
+                            <td class="col-duracao">30 Min</td>
+                            <td class="col-fracionar">
+                                <span class="tag tag-warn"><i class="ph ph-warning"></i> Evitar</span>
+                            </td>
+                            <td class="col-procedimento">
+                                <ol>
+                                    <li>Estacionar em local seguro.</li>
+                                    <li>Enviar Macro PAUSAS.</li>
+                                    <li>Desligar o motor.</li>
+                                </ol>
+                            </td>
+                            <td class="col-obs">
+                                Obrigatório parar 30 minutos a cada 5h30 de direção.
+                            </td>
+                        </tr>
+
+                        <!-- Row 3 -->
+                        <tr>
+                            <td class="col-situacao">
+                                <span class="situacao-main">🚗 VOLTAR A DIRIGIR</span>
+                                <span class="situacao-sub">Após descanso rápido</span>
+                            </td>
+                            <td class="col-macro">
+                                <div class="macro-btn">Retorno Pausa</div>
+                            </td>
+                            <td class="col-duracao">-</td>
+                            <td class="col-fracionar">
+                                <span class="tag tag-neutral">-</span>
+                            </td>
+                            <td class="col-procedimento">
+                                <ol>
+                                    <li>Enviar Macro RETORNO PAUSA.</li>
+                                    <li>Dar a partida.</li>
+                                </ol>
+                            </td>
+                            <td class="col-obs">
+                                Só envie se realmente for sair da pausa.
+                            </td>
+                        </tr>
+
+                        <!-- Row 4 -->
+                        <tr>
+                            <td class="col-situacao">
+                                <span class="situacao-main">🍽️ ALMOÇO / JANTAR</span>
+                                <span class="situacao-sub">Refeição - Intrajornada</span>
+                            </td>
+                            <td class="col-macro">
+                                <div class="macro-btn">Parada Almoço</div>
+                            </td>
+                            <td class="col-duracao">1h (Mín)</td>
+                            <td class="col-fracionar">
+                                <span class="tag tag-danger"><i class="ph ph-prohibit"></i> NÃO</span>
+                            </td>
+                            <td class="col-procedimento">
+                                <ol>
+                                    <li>Estacionar.</li>
+                                    <li>Enviar Macro PARADA ALMOÇO.</li>
+                                    <li>Realizar o intervalo.</li>
+                                </ol>
+                            </td>
+                            <td class="col-obs">
+                                O intervalo deve ser de <strong>no mínimo 1 hora</strong>.
+                            </td>
+                        </tr>
+
+                        <!-- Row 5 -->
+                        <tr>
+                            <td class="col-situacao">
+                                <span class="situacao-main">🔄 ACABOU O ALMOÇO</span>
+                                <span class="situacao-sub">Volta ao trabalho</span>
+                            </td>
+                            <td class="col-macro">
+                                <div class="macro-btn">Retorno Almoço</div>
+                            </td>
+                            <td class="col-duracao">-</td>
+                            <td class="col-fracionar">
+                                <span class="tag tag-neutral">-</span>
+                            </td>
+                            <td class="col-procedimento">
+                                <ol>
+                                    <li>Enviar Macro RETORNO ALMOÇO.</li>
+                                    <li>Seguir viagem.</li>
+                                </ol>
+                            </td>
+                            <td class="col-obs">
+                                Cuidado para não bater o ponto antes de completar 1h exata de intervalo.
+                            </td>
+                        </tr>
+
+                        <!-- Row 6 -->
+                        <tr>
+                            <td class="col-situacao">
+                                <span class="situacao-main">🌙 ENCERRAR O DIA</span>
+                                <span class="situacao-sub">Dormir / Pernoite</span>
+                            </td>
+                            <td class="col-macro">
+                                <div class="macro-btn dark">Fim de Jornada</div>
+                            </td>
+                            <td class="col-duracao">11h (Seguidas)</td>
+                            <td class="col-fracionar">
+                                <span class="tag tag-danger"><i class="ph ph-prohibit"></i> NÃO</span>
+                            </td>
+                            <td class="col-procedimento">
+                                <ol>
+                                    <li>Estacionar para pernoite.</li>
+                                    <li>Enviar Macro FIM DE JORNADA.</li>
+                                    <li>Desligar por 11 horas.</li>
+                                </ol>
+                            </td>
+                            <td class="col-obs">
+                                Finalização da jornada. <strong>Descanso por 11 horas direto</strong>.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Print FAB -->
+    <button class="print-btn" onclick="window.print()" title="Imprimir tabela">
+        <i class="ph ph-printer"></i>
+    </button>
+
+</body>
+
+</html>

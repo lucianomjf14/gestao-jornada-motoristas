@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FAQ - Controle de Jornada</title>
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            --primary: #0056D2;
+            --primary-dark: #0041a3;
+            --secondary: #F0F4FF;
+            --success: #059669;
+            --warning: #D97706;
+            --danger: #DC2626;
+            --text-main: #111827;
+            --text-secondary: #4B5563;
+            --bg-body: #F9FAFB;
+            --surface: #FFFFFF;
+            --header-height: 60px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: var(--surface);
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-action {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .header-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--warning) 0%, #B45309 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .hero-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .hero-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+        }
+
+        .hero-subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .faq-category {
+            margin-bottom: 30px;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .category-icon.blue {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+
+        .category-icon.orange {
+            background: #FEF3C7;
+            color: var(--warning);
+        }
+
+        .category-icon.red {
+            background: #FEE2E2;
+            color: var(--danger);
+        }
+
+        .category-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .faq-item {
+            background: var(--surface);
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .faq-item:hover {
+            border-color: var(--primary);
+        }
+
+        .faq-question {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .faq-question i {
+            color: var(--text-secondary);
+            transition: transform 0.3s;
+        }
+
+        .faq-item.open .faq-question i {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 20px 20px 20px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .faq-item.open .faq-answer {
+            display: block;
+        }
+
+        .faq-note {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--secondary);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+            font-size: 0.85rem;
+        }
+
+        .faq-note.warning {
+            background: #FEF3C7;
+            border-left-color: var(--warning);
+        }
+
+        .faq-note.danger {
+            background: #FEE2E2;
+            border-left-color: var(--danger);
+        }
+
+        .faq-note strong {
+            color: var(--text-main);
+        }
+
+        .error-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .error-card {
+            background: var(--surface);
+            border: 1px solid #E5E7EB;
+            border-left: 4px solid var(--danger);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .error-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .error-desc {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .error-consequence {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding-top: 12px;
+            border-top: 1px dashed #E5E7EB;
+        }
+
+        .contact-footer {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .contact-footer h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .contact-footer p {
+            margin: 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 25px 20px;
+            }
+
+            .hero-title {
+                font-size: 1.3rem;
+            }
+
+            .error-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="app-header">
+        <div class="header-left">
+            <button class="header-action" onclick="window.location.href='index.html'" title="Voltar">
+                <i class="ph ph-arrow-left"></i>
+            </button>
+            <div class="header-title">Dúvidas Frequentes</div>
+        </div>
+        <a href="tabela.html" class="header-action" title="Tabela de Macros">
+            <i class="ph ph-table"></i>
+        </a>
+    </header>
+
+    <main class="main-content">
+
+        <div class="hero-section">
+            <i class="ph ph-question hero-icon"></i>
+            <h1 class="hero-title">Perguntas Frequentes</h1>
+            <p class="hero-subtitle">Tire suas dúvidas sobre Controle de Jornada e Lei do Motorista</p>
+        </div>
+
+        <!-- Category 1: Horários -->
+        <div class="faq-category">
+            <div class="category-header">
+                <div class="category-icon blue"><i class="ph ph-clock"></i></div>
+                <h2 class="category-title">Sobre os Horários de Trabalho</h2>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    Qual é o máximo que posso trabalhar por dia?
+                    <i class="ph ph-caret-down"></i>
+                </div>
+                <div class="faq-answer">
+                    O limite total é de <strong>12 horas</strong> (8h normais + 4h extras autorizadas pela CCT).
+                    <div class="faq-note">
+                        <strong>💡 Regra:</strong> Somou direção, carga, descarga e espera e deu 12 horas? O caminhão
+                        deve parar.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    Posso dividir minha hora de almoço em dois tempos de 30 minutos?
+                    <i class="ph ph-caret-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <strong>NÃO.</strong> O intervalo de refeição deve ser de, no mínimo, <strong>1 hora direto</strong>
+                    (Art. 71 CLT).
+                    <div class="faq-note warning">
+                        <strong>⚠️ Por quê?</strong> Se você parar menos de 1 hora, o sistema considera que você não fez
+                        intervalo.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    Quanto tempo tenho que ficar parado para o pernoite?
+                    <i class="ph ph-caret-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Entre o fim de um dia e o começo do outro, você deve descansar <strong>11 horas seguidas</strong>
+                    (Art. 66 CLT).
+                    <div class="faq-note">
+                        <strong>📝 Exemplo:</strong> Parou às 20:00? Só pode ligar às 07:00 da manhã seguinte.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    A cada quantas horas de direção preciso parar?
+                    <i class="ph ph-caret-down"></i>
+                </div>
+                <div class="faq-answer">
+                    A cada <strong>5h30 de direção contínua</strong>, você deve fazer uma pausa de <strong>30
+                        minutos</strong>.
+                    <div class="faq-note">
+                        <strong>💡 Dica:</strong> Essa pausa pode ser fracionada, mas evite fazer isso para não
+                        complicar o controle.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category 2: Macros -->
+        <div class="faq-category">
+            <div class="category-header">
+                <div class="category-icon orange"><i class="ph ph-keyboard"></i></div>
+                <h2 class="category-title">O Rastreador e as Macros</h2>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    O rastreador mostra que o caminhão está parado. Por que preciso enviar a Macro?
+                    <i class="ph ph-caret-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Porque <strong>"caminhão parado" não significa "motorista descansando"</strong>. A Macro é a prova
+                    de que você está livre do serviço.
+                    <div class="faq-note warning">
+                        <strong>⚠️ Atenção:</strong> Sem a Macro, o sistema conta como hora trabalhada (tempo de
+                        espera).
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    Quais Macros são obrigatórias?
+                    <i class="ph ph-caret-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>INÍCIO DE JORNADA:</strong> Antes de dar a partida.</li>
+                        <li><strong>PARADA ALMOÇO / RETORNO ALMOÇO:</strong> Para refeição (mínimo 1h).</li>
+                        <li><strong>PAUSAS / RETORNO PAUSA:</strong> Para descanso de direção (30min a cada 5h30).</li>
+                        <li><strong>FIM DE JORNADA:</strong> Quando parar para dormir (pernoite).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    O que acontece se eu esquecer de enviar a Macro?
+                    <i class="ph ph-caret-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Você deve <strong>avisar a base imediatamente</strong> para corrigir.
+                    <div class="faq-note danger">
+                        <strong>🚨 IMPORTANTE:</strong> A CCT (Cláusula 21ª) diz que inserir os dados é responsabilidade
+                        exclusiva do motorista. Não fazer o registro correto é FALTA GRAVE.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category 3: Erros Comuns -->
+        <div class="faq-category">
+            <div class="category-header">
+                <div class="category-icon red"><i class="ph ph-warning-octagon"></i></div>
+                <h2 class="category-title">Erros Comuns a Evitar</h2>
+            </div>
+
+            <div class="error-grid">
+                <div class="error-card">
+                    <div class="error-title"><i class="ph ph-x-circle"></i> ERRO COMUM</div>
+                    <div class="error-desc">Fazer "picadinho" no almoço (30min + 30min)</div>
+                    <div class="error-consequence">
+                        <strong>Consequência:</strong> O sistema anula seu descanso. Tem que ser 1h direto.
+                    </div>
+                </div>
+
+                <div class="error-card">
+                    <div class="error-title"><i class="ph ph-x-circle"></i> ERRO COMUM</div>
+                    <div class="error-desc">Rodar sem enviar "Início de Jornada"</div>
+                    <div class="error-consequence">
+                        <strong>Consequência:</strong> O caminhão roda sem motorista identificado no sistema.
+                    </div>
+                </div>
+
+                <div class="error-card">
+                    <div class="error-title"><i class="ph ph-x-circle"></i> ERRO COMUM</div>
+                    <div class="error-desc">Não enviar "Fim de Jornada" ao dormir</div>
+                    <div class="error-consequence">
+                        <strong>Consequência:</strong> O sistema conta como se você trabalhasse 24h sem parar.
+                    </div>
+                </div>
+
+                <div class="error-card">
+                    <div class="error-title"><i class="ph ph-x-circle"></i> ERRO COMUM</div>
+                    <div class="error-desc">Parar menos de 11h no pernoite</div>
+                    <div class="error-consequence">
+                        <strong>Consequência:</strong> Violação da lei. Gera alerta no sistema.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Footer -->
+        <div class="contact-footer">
+            <h3><i class="ph ph-headset"></i> Ainda tem dúvidas?</h3>
+            <p>Fale com a Gerência Operacional ou entre em contato com a supervisão.</p>
+        </div>
+
+    </main>
+
+    <script>
+        function toggleFAQ(item) {
+            document.querySelectorAll('.faq-item.open').forEach(openItem => {
+                if (openItem !== item) openItem.classList.remove('open');
+            });
+            item.classList.toggle('open');
+            if (navigator.vibrate) navigator.vibrate(20);
+        }
+    </script>
+</body>
+
+</html>

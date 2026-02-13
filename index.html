@@ -1,0 +1,680 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Início - Controle de Jornada</title>
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="drivers.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <style>
+        :root {
+            --primary: #0056D2;
+            --primary-dark: #0041a3;
+            --secondary: #F0F4FF;
+            --success: #059669;
+            --success-bg: #ECFDF5;
+            --warning: #D97706;
+            --warning-bg: #FEF3C7;
+            --danger: #DC2626;
+            --text-main: #111827;
+            --text-secondary: #6B7280;
+            --bg-body: #F9FAFB;
+            --surface: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header --- */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top));
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* --- User Card --- */
+        .user-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+        .user-info h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .user-info p {
+            margin: 4px 0 0 0;
+            opacity: 0.8;
+            font-size: 0.85rem;
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* --- Status Card --- */
+        .status-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid #E5E7EB;
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .status-title {
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-badge.completed {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .status-badge.pending {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        .status-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .status-item {
+            background: var(--bg-body);
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .status-item-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .status-item-value {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* --- Section Title --- */
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        /* --- Action Cards Grid --- */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .action-card {
+            background: var(--surface);
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 24px 16px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .action-card:hover:not(.disabled) {
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px rgba(0, 86, 210, 0.1);
+            transform: translateY(-4px);
+        }
+
+        .action-card:active:not(.disabled) {
+            transform: translateY(-2px);
+        }
+
+        .action-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+        .action-icon.blue {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+
+        .action-icon.yellow {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        .action-icon.cyan {
+            background: #E0F2FE;
+            color: #0284C7;
+        }
+
+        .action-icon.gray {
+            background: #F3F4F6;
+            color: var(--text-secondary);
+        }
+
+        .action-icon.orange {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+
+        .action-icon.green {
+            background: #D1FAE5;
+            color: #059669;
+        }
+
+        /* Password Card Special */
+        .password-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+            color: white;
+            border: none;
+        }
+
+        .password-card .action-title,
+        .password-card .action-subtitle {
+            color: white;
+        }
+
+        .password-card .action-subtitle {
+            opacity: 0.8;
+        }
+
+        .password-grid {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .password-item {
+            text-align: center;
+        }
+
+        .password-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        .password-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            letter-spacing: 2px;
+        }
+
+        .action-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .action-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: -8px;
+        }
+
+        /* Lock icon for disabled cards */
+        .action-card.disabled .action-icon::after {
+            content: '🔒';
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            font-size: 1rem;
+        }
+
+        .action-card .action-icon {
+            position: relative;
+        }
+
+        /* --- Quick Links --- */
+        .quick-links {
+            margin-top: 24px;
+        }
+
+        .quick-link {
+            background: var(--surface);
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .quick-link:hover {
+            border-color: var(--primary);
+            background: var(--secondary);
+        }
+
+        .quick-link-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quick-link-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-body);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .quick-link-text {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .quick-link-arrow {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 400px) {
+            .action-grid {
+                gap: 12px;
+            }
+
+            .action-card {
+                padding: 20px 12px;
+            }
+
+            .action-icon {
+                width: 56px;
+                height: 56px;
+                font-size: 1.5rem;
+            }
+
+            .user-card {
+                padding: 16px;
+            }
+
+            .user-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-top">
+            <div class="logo">
+                <img id="headerLogo" src="" alt="Logo" style="height: 32px; display: none;">
+                <i class="ph ph-truck" id="headerIcon"></i>
+                Controle de Jornada
+            </div>
+            <button class="btn-logout" onclick="logout()">
+                <i class="ph ph-sign-out"></i>
+                Sair
+            </button>
+        </div>
+
+        <div class="user-card">
+            <div class="user-avatar">
+                <i class="ph ph-user"></i>
+            </div>
+            <div class="user-info">
+                <h2 id="driverName">Carregando...</h2>
+                <p id="driverCompany">-</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Status Card -->
+        <div class="status-card">
+            <div class="status-header">
+                <div class="status-title">
+                    <i class="ph ph-clipboard-text"></i>
+                    Status do Treinamento
+                </div>
+                <div class="status-badge pending" id="trainingBadge">
+                    <i class="ph ph-clock"></i>
+                    <span id="trainingStatus">Pendente</span>
+                </div>
+            </div>
+            <div class="status-details">
+                <div class="status-item">
+                    <div class="status-item-label">CPF</div>
+                    <div class="status-item-value" id="driverCPF">-</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-item-label">E-mail</div>
+                    <div class="status-item-value" id="driverEmail">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Cards -->
+        <div class="section-title">Acesso Rápido</div>
+        <div class="action-grid">
+            <a href="treinamento.html" class="action-card" id="cardTreinamento">
+                <div class="action-icon blue">
+                    <i class="ph ph-graduation-cap"></i>
+                </div>
+                <span class="action-title">Treinamento</span>
+                <span class="action-subtitle" id="trainingSubtitle">Iniciar agora</span>
+            </a>
+
+            <a href="certificado.html" class="action-card" id="cardCertificado">
+                <div class="action-icon yellow">
+                    <i class="ph ph-certificate"></i>
+                </div>
+                <span class="action-title">Certificado</span>
+                <span class="action-subtitle" id="certSubtitle">Ver documento</span>
+            </a>
+
+            <a href="faq.html" class="action-card">
+                <div class="action-icon cyan">
+                    <i class="ph ph-question"></i>
+                </div>
+                <span class="action-title">Dúvidas</span>
+                <span class="action-subtitle">Perguntas frequentes</span>
+            </a>
+
+            <a href="tabela.html" class="action-card">
+                <div class="action-icon gray">
+                    <i class="ph ph-table"></i>
+                </div>
+                <span class="action-title">Macros</span>
+                <span class="action-subtitle">Tabela de referência</span>
+            </a>
+
+            <!-- Password Card (only visible after training) -->
+            <div class="action-card password-card" id="cardSenhas" style="display: none;">
+                <div class="action-icon green">
+                    <i class="ph ph-key"></i>
+                </div>
+                <span class="action-title">Suas Senhas</span>
+                <span class="action-subtitle">Guarde com segurança!</span>
+                <div class="password-grid">
+                    <div class="password-item">
+                        <div class="password-label">Operação</div>
+                        <div class="password-value" id="senhaOperacao">----</div>
+                    </div>
+                    <div class="password-item">
+                        <div class="password-label">Coação</div>
+                        <div class="password-value" id="senhaCoacao">----</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Verificar se há dados do motorista
+            const driverData = JSON.parse(localStorage.getItem('driverData') || 'null');
+
+            if (!driverData || !driverData.nome) {
+                // Redirecionar para login se não estiver logado
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // 2. Preencher informações do motorista
+            document.getElementById('driverName').textContent = driverData.nome;
+            document.getElementById('driverCompany').textContent = driverData.empresa || 'Empresa não informada';
+            document.getElementById('driverCPF').textContent = driverData.cpf || '-';
+            document.getElementById('driverEmail').textContent = driverData.email || '-';
+
+            // Set Header Logo based on Company
+            const empresaRaw = (driverData.empresa || '').toLowerCase().trim();
+            const headerLogo = document.getElementById('headerLogo');
+            const headerIcon = document.getElementById('headerIcon');
+            let logoSrc = null;
+
+            if (empresaRaw.includes('empresa b')) {
+                logoSrc = 'imagens/logos/logo_empresa_b.png';
+            } else if (empresaRaw.includes('empresa a')) {
+                logoSrc = 'imagens/logos/logo_empresa_a.png';
+            }
+
+            if (logoSrc) {
+                headerLogo.src = logoSrc;
+                headerLogo.style.display = 'block';
+                headerIcon.style.display = 'none';
+            }
+
+            // 3. Verificar se o treinamento foi concluído - FIREBASE é a ÚNICA fonte da verdade
+            const cleanCPF = driverData.cpf ? driverData.cpf.replace(/\D/g, '') : '';
+
+            // Buscar APENAS do Firebase (sem fallback local)
+            let signatureEvidence = null;
+            let firebaseRecord = await firebaseGetTrainingRecord(cleanCPF);
+
+            if (firebaseRecord) {
+                // Treinamento existe no Firebase
+                console.log('✅ Treinamento encontrado no Firebase');
+                signatureEvidence = firebaseRecord;
+                // Sincronizar localStorage apenas para uso offline do certificado
+                localStorage.setItem('signatureEvidence', JSON.stringify(firebaseRecord));
+                if (firebaseRecord.signatureData) {
+                    localStorage.setItem('driverSignature', firebaseRecord.signatureData);
+                }
+            } else {
+                // Treinamento NÃO existe no Firebase - limpar cache local
+                console.log('⚠️ Nenhum treinamento no Firebase - limpando cache');
+                localStorage.removeItem('signatureEvidence');
+                localStorage.removeItem('driverSignature');
+                signatureEvidence = null;
+            }
+
+            const trainingCompleted = signatureEvidence && signatureEvidence.trainingCompleted;
+
+            // Declarar referências a elementos do DOM
+            const badge = document.getElementById('trainingBadge');
+            const trainingSubtitle = document.getElementById('trainingSubtitle');
+            const certSubtitle = document.getElementById('certSubtitle');
+            const cardCertificado = document.getElementById('cardCertificado');
+
+            if (trainingCompleted) {
+                // Treinamento concluído
+                badge.classList.remove('pending');
+                badge.classList.add('completed');
+                badge.innerHTML = '<i class="ph ph-check-circle"></i> Concluído';
+
+                trainingSubtitle.textContent = 'Realizar revisão';
+                certSubtitle.textContent = 'Baixar agora';
+
+                // Mostrar card de senhas
+                const cardSenhas = document.getElementById('cardSenhas');
+                if (cardSenhas && driverData.senhaOperacao) {
+                    cardSenhas.style.display = 'flex';
+                    document.getElementById('senhaOperacao').textContent = driverData.senhaOperacao;
+                    document.getElementById('senhaCoacao').textContent = driverData.senhaCoacao;
+                }
+            } else {
+                // Treinamento pendente - bloquear certificado
+                cardCertificado.classList.add('disabled');
+                cardCertificado.href = 'javascript:void(0)';
+                cardCertificado.onclick = function (e) {
+                    e.preventDefault();
+                    alert('Complete o treinamento primeiro para acessar seu certificado.');
+                    vibrate(100);
+                };
+                certSubtitle.textContent = 'Complete o treinamento';
+            }
+        });
+
+        function logout() {
+            if (confirm('Deseja sair do sistema?')) {
+                localStorage.removeItem('driverData');
+                localStorage.removeItem('driverSignature');
+                localStorage.removeItem('signatureEvidence');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function vibrate(ms) {
+            if (navigator.vibrate) {
+                navigator.vibrate(ms);
+            }
+        }
+
+        // Haptic feedback on card tap
+        document.querySelectorAll('.action-card').forEach(card => {
+            card.addEventListener('touchstart', () => vibrate(20));
+        });
+    </script>
+</body>
+
+</html>

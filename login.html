@@ -1,0 +1,518 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Identificação - Controle de Jornada</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="drivers.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <style>
+        :root {
+            --primary: #0056D2;
+            --primary-dark: #0041a3;
+            --secondary: #F0F4FF;
+            --success: #059669;
+            --warning: #D97706;
+            --danger: #DC2626;
+            --text-main: #111827;
+            --text-secondary: #4B5563;
+            --bg-body: #F9FAFB;
+            --surface: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: var(--surface);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .login-header h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .login-header p {
+            margin: 8px 0 0 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .login-form {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-main);
+        }
+
+        .form-group label i {
+            color: var(--primary);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            background: #FAFAFA;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0, 86, 210, 0.1);
+        }
+
+        .form-group input[readonly] {
+            background: #F3F4F6;
+            color: var(--text-secondary);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 86, 210, 0.3);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 86, 210, 0.4);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .login-footer {
+            padding: 20px 30px;
+            background: #F8FAFC;
+            border-top: 1px solid #E5E7EB;
+            text-align: center;
+        }
+
+        .footer-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .footer-text i {
+            color: var(--success);
+        }
+
+        .info-card {
+            background: var(--secondary);
+            border: 1px solid #DBEAFE;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: var(--primary-dark);
+        }
+
+        .info-card i {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .error-card {
+            background: #FEE2E2;
+            border: 1px solid #FECACA;
+            color: var(--danger);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .error-card i {
+            font-size: 1.2rem;
+        }
+
+        .success-card {
+            background: #D1FAE5;
+            border: 1px solid #A7F3D0;
+            color: var(--success);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .success-card .logo-img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            display: none;
+        }
+
+        .success-card .driver-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: block;
+            margin-top: 0;
+        }
+
+        .success-card .driver-company {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .step-2 {
+            display: none;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 16px;
+            padding: 0;
+        }
+
+        @media (max-width: 480px) {
+
+            .login-header,
+            .login-form {
+                padding: 25px 20px;
+            }
+
+            .login-footer {
+                padding: 15px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-container">
+        <div class="login-header">
+            <i class="ph ph-truck logo-icon"></i>
+            <h1>Controle de Jornada</h1>
+            <p id="headerSubtitle">Identificação do Motorista</p>
+        </div>
+
+        <!-- Step 1: CPF -->
+        <form class="login-form" id="step1Form">
+            <div class="info-card">
+                <i class="ph ph-info"></i>
+                <span>Digite seu CPF para acessar o sistema de treinamento.</span>
+            </div>
+
+            <div class="error-card" id="errorCard">
+                <i class="ph ph-warning"></i>
+                <span>CPF não cadastrado. Entre em contato com a administração.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="cpf">
+                    <i class="ph ph-identification-card"></i>
+                    CPF
+                </label>
+                <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required maxlength="14" autofocus>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="ph ph-magnifying-glass"></i>
+                Verificar CPF
+            </button>
+        </form>
+
+        <!-- Step 2: Confirm Data -->
+        <form class="login-form step-2" id="step2Form">
+            <button type="button" class="btn-back" onclick="goBack()">
+                <i class="ph ph-arrow-left"></i> Voltar
+            </button>
+
+            <div class="success-card">
+                <img id="driverCompanyLogo" src="" alt="Logo" class="logo-img">
+                <div>
+                    <i class="ph ph-check-circle" id="successIcon" style="font-size: 2rem; display: block;"></i>
+                    <span class="driver-name" id="displayName">-</span>
+                    <span class="driver-company" id="displayCompany">-</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">
+                    <i class="ph ph-envelope"></i>
+                    E-mail (opcional)
+                </label>
+                <input type="email" id="email" name="email" placeholder="seu.email@exemplo.com">
+            </div>
+
+            <input type="hidden" id="driverCPF">
+            <input type="hidden" id="driverNome">
+            <input type="hidden" id="driverEmpresa">
+
+            <button type="submit" class="btn-submit">
+                <i class="ph ph-play-circle"></i>
+                Iniciar Treinamento
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <p class="footer-text">
+                <i class="ph ph-lock-simple"></i>
+                Acesso restrito a motoristas cadastrados.
+            </p>
+            <a href="admin.html"
+                style="display: inline-flex; align-items: center; gap: 4px; margin-top: 12px; font-size: 0.75rem; color: #9CA3AF; text-decoration: none;">
+                <i class="ph ph-shield-check"></i> Acesso Administrador
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let currentDriver = null;
+
+        // CPF Mask
+        document.getElementById('cpf').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 11) value = value.slice(0, 11);
+
+            if (value.length > 9) {
+                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            } else if (value.length > 6) {
+                value = value.replace(/(\d{3})(\d{3})(\d{3})/, '$1.$2.$3');
+            } else if (value.length > 3) {
+                value = value.replace(/(\d{3})(\d{3})/, '$1.$2');
+            }
+
+            e.target.value = value;
+        });
+
+        // Step 1: Verify CPF
+        document.getElementById('step1Form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const cpf = document.getElementById('cpf').value.replace(/\D/g, '');
+
+            if (cpf.length !== 11) {
+                showError('Digite um CPF válido com 11 dígitos.');
+                return;
+            }
+
+            // Search driver in Firebase
+            currentDriver = await firebaseFindDriverByCPF(cpf);
+
+            if (currentDriver) {
+                // Found! Show step 2
+                document.getElementById('step1Form').style.display = 'none';
+                document.getElementById('step2Form').style.display = 'block';
+                document.getElementById('headerSubtitle').textContent = 'Confirme seus dados';
+
+                // Fill data
+                document.getElementById('displayName').textContent = currentDriver.nome;
+                document.getElementById('displayCompany').textContent = currentDriver.empresa === 'Empresa A' ?
+                    'Empresa A Transportes e Log\u00edstica' : 'Empresa B Transportes';
+                document.getElementById('email').value = currentDriver.email || '';
+
+                // Set Logo
+                const empresaRaw = (currentDriver.empresa || '').toLowerCase().trim();
+                const logoImg = document.getElementById('driverCompanyLogo');
+                const successIcon = document.getElementById('successIcon');
+
+                let logoSrc = null;
+                if (empresaRaw.includes('empresa b')) {
+                    logoSrc = 'imagens/logos/logo_empresa_b.png';
+                } else if (empresaRaw.includes('empresa a')) {
+                    logoSrc = 'imagens/logos/logo_empresa_a.png';
+                }
+
+                if (logoSrc) {
+                    logoImg.src = logoSrc;
+                    logoImg.style.display = 'block';
+                    successIcon.style.display = 'none'; // Hide generic icon if logo is present
+                } else {
+                    logoImg.style.display = 'none';
+                    successIcon.style.display = 'block';
+                }
+
+                // Hidden fields
+                document.getElementById('driverCPF').value = currentDriver.cpf;
+                document.getElementById('driverNome').value = currentDriver.nome;
+                document.getElementById('driverEmpresa').value = currentDriver.empresa;
+
+                hideError();
+                vibrate(30);
+            } else {
+                showError('CPF não cadastrado. Entre em contato com a administração.');
+                vibrate([50, 30, 50]);
+            }
+        });
+
+        // Step 2: Start Training
+        document.getElementById('step2Form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+
+            // Update driver email if provided (Firebase)
+            if (email && currentDriver) {
+                currentDriver.email = email;
+                await firebaseUpdateDriver(currentDriver.id, { email: email });
+            }
+
+            // Save to localStorage
+            const driverData = {
+                nome: currentDriver.nome,
+                cpf: formatCPF(currentDriver.cpf),
+                empresa: currentDriver.empresa === 'Empresa A' ?
+                    'Empresa A Transportes e Log\u00edstica LTDA' : 'Empresa B Transportes LTDA',
+                email: email,
+                senhaOperacao: currentDriver.senhaOperacao,
+                senhaCoacao: currentDriver.senhaCoacao,
+                dataInicio: new Date().toISOString()
+            };
+
+            localStorage.setItem('driverData', JSON.stringify(driverData));
+
+            // Check if training is already completed - Firebase is SOURCE OF TRUTH
+            const cleanCPF = currentDriver.cpf.replace(/\D/g, '');
+            let trainingRecord = await firebaseGetTrainingRecord(cleanCPF);
+
+            if (trainingRecord) {
+                // Training exists in Firebase - restore it
+                console.log('✅ Restaurando treinamento concluído do Firebase...');
+                localStorage.setItem('signatureEvidence', JSON.stringify(trainingRecord));
+                if (trainingRecord.signatureData) {
+                    localStorage.setItem('driverSignature', trainingRecord.signatureData);
+                }
+            } else {
+                // No Firebase record - training was reset or never done
+                // ALWAYS clear localStorage to ensure sync
+                console.log('⚠️ Nenhum treinamento no Firebase - limpando cache local');
+                localStorage.removeItem('driverSignature');
+                localStorage.removeItem('signatureEvidence');
+            }
+
+            vibrate(50);
+            window.location.href = 'index.html';
+        });
+
+        function goBack() {
+            document.getElementById('step1Form').style.display = 'block';
+            document.getElementById('step2Form').style.display = 'none';
+            document.getElementById('headerSubtitle').textContent = 'Identificação do Motorista';
+            currentDriver = null;
+        }
+
+        function showError(msg) {
+            const errorCard = document.getElementById('errorCard');
+            errorCard.querySelector('span').textContent = msg;
+            errorCard.style.display = 'flex';
+        }
+
+        function hideError() {
+            document.getElementById('errorCard').style.display = 'none';
+        }
+
+        function formatCPF(cpf) {
+            if (!cpf || cpf.length !== 11) return cpf;
+            return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        }
+
+        function vibrate(pattern) {
+            if (navigator.vibrate) navigator.vibrate(pattern);
+        }
+    </script>
+</body>
+
+</html>
