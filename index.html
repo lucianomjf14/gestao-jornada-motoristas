@@ -561,6 +561,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            // 0. Verificar sessão válida (v2.0.0)
+            if (typeof isSessionValid === 'function' && !isSessionValid()) {
+                localStorage.removeItem('driverData');
+                localStorage.removeItem('driverSignature');
+                localStorage.removeItem('signatureEvidence');
+                window.location.href = 'login.html';
+                return;
+            }
+
             // 1. Verificar se há dados do motorista
             const driverData = JSON.parse(localStorage.getItem('driverData') || 'null');
 

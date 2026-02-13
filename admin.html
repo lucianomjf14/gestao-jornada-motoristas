@@ -735,6 +735,7 @@
                         <thead>
                             <tr>
                                 <th>Motorista</th>
+                                <th>Código</th>
                                 <th>Operação</th>
                                 <th>Coação</th>
                                 <th>Status</th>
@@ -755,6 +756,7 @@
                         <thead>
                             <tr>
                                 <th>Motorista</th>
+                                <th>Código</th>
                                 <th>Operação</th>
                                 <th>Coação</th>
                                 <th>Status</th>
@@ -1000,6 +1002,14 @@
         </div>
         <div class="driver-cpf">${formatCPF(driver.cpf)}</div>
     </td>
+    <td>
+        <div style="display:flex; align-items:center; gap:4px;">
+            <code style="font-weight:700; letter-spacing:2px; font-size:0.85rem; color:#0056D2; background:#F0F4FF; padding:2px 6px; border-radius:4px;">${driver.codigoAcesso || "---"}</code>
+            <button class="btn-sm" onclick="regenerateCode('${driver.id}', '${driver.nome}', '${driver.email || ""}')" title="Regenerar" style="padding:2px 5px; font-size:0.7rem;">
+                <i class="ph ph-arrows-clockwise"></i>
+            </button>
+        </div>
+    </td>
     <td><span class="password-badge">${driver.senhaOperacao}</span></td>
     <td><span class="password-badge">${driver.senhaCoacao}</span></td>
     <td>
@@ -1028,6 +1038,63 @@
     `;
                 tbody.appendChild(row);
             }
+        }
+
+
+        // =============================================
+        // ACCESS CODE MANAGEMENT (v2.0.0)
+        // =============================================
+
+        async function regenerateCode(id, nome, email) {
+            if (!confirm('Regenerar código de acesso de ' + nome + '? O código anterior será invalidado.')) return;
+            const newCode = await firebaseRegenerateAccessCode(id);
+            if (newCode) {
+                showAccessCodeModal(nome, newCode, email);
+                await loadDashboard();
+            } else {
+                alert('Erro ao regenerar código.');
+            }
+        }
+
+        function showAccessCodeModal(nome, code, email) {
+            const existing = document.getElementById('accessCodeModal');
+            if (existing) existing.remove();
+
+            const emailSubject = encodeURIComponent('Seu código de acesso - Controle de Jornada');
+            const emailBody = encodeURIComponent('Olá ' + nome + ',\n\nSeu código de acesso para o sistema de Controle de Jornada é:\n\n' + code + '\n\nUse este código junto com seu CPF para acessar o sistema.\n\nAtenciosamente,\nEquipe de Treinamento');
+            const whatsMsg = encodeURIComponent('Olá ' + nome + '! Seu código de acesso para o Controle de Jornada é: *' + code + '*. Use junto com seu CPF para entrar no sistema.');
+
+            const modal = document.createElement('div');
+            modal.id = 'accessCodeModal';
+            modal.className = 'modal-overlay active';
+            modal.innerHTML = ''
+                + '<div class="modal-content" style="max-width:420px; text-align:center;">'
+                + '  <div class="modal-header" style="background:linear-gradient(135deg,#059669,#047857); justify-content:center;">'
+                + '    <h3 style="margin:0;"><i class="ph ph-check-circle"></i> Motorista Cadastrado</h3>'
+                + '  </div>'
+                + '  <div class="modal-body" style="padding:24px;">'
+                + '    <p style="margin:0 0 8px; font-size:0.9rem; color:#6B7280;">Código de acesso de <strong>' + nome + '</strong>:</p>'
+                + '    <div style="background:#F0F4FF; border:2px dashed #0056D2; border-radius:12px; padding:16px; margin:12px 0;">'
+                + '      <span style="font-family:monospace; font-size:2rem; font-weight:800; letter-spacing:6px; color:#0056D2;">' + code + '</span>'
+                + '    </div>'
+                + '    <p style="margin:8px 0 16px; font-size:0.8rem; color:#9CA3AF;">O motorista deve usar CPF + este código para acessar o sistema.</p>'
+                + '    <div style="display:flex; flex-direction:column; gap:8px;">'
+                + '      <button onclick="copyCode(\'' + code + '\', this)" class="btn" style="background:#0056D2; color:white; display:flex; align-items:center; justify-content:center; gap:6px;"><i class="ph ph-copy"></i> Copiar Código</button>'
+                + (email ? '      <a href="mailto:' + email + '?subject=' + emailSubject + '&body=' + emailBody + '" class="btn" style="background:#EA4335; color:white; display:flex; align-items:center; justify-content:center; gap:6px; text-decoration:none;"><i class="ph ph-envelope"></i> Enviar por E-mail</a>' : '')
+                + '      <a href="https://wa.me/?text=' + whatsMsg + '" target="_blank" class="btn" style="background:#25D366; color:white; display:flex; align-items:center; justify-content:center; gap:6px; text-decoration:none;"><i class="ph ph-whatsapp-logo"></i> Enviar por WhatsApp</a>'
+                + '    </div>'
+                + '  </div>'
+                + '  <div class="modal-footer">'
+                + '    <button class="btn" onclick="document.getElementById(\'accessCodeModal\').remove()" style="width:100%;">Fechar</button>'
+                + '  </div>'
+                + '</div>';
+            document.body.appendChild(modal);
+        }
+
+        function copyCode(code, btn) {
+            navigator.clipboard.writeText(code);
+            btn.innerHTML = '<i class="ph ph-check"></i> Copiado!';
+            setTimeout(() => { btn.innerHTML = '<i class="ph ph-copy"></i> Copiar Código'; }, 2000);
         }
 
         function formatCPF(cpf) {
@@ -1111,7 +1178,97 @@
                 // Reload dashboard
                 await loadDashboard();
 
-                alert('Motorista cadastrado com sucesso!');
+
+// =============================================
+// ACCESS CODE AUTHENTICATION (v2.0.0)
+// =============================================
+
+/**
+ * Gerar código de acesso aleatório (6 caracteres alfanuméricos)
+ * Produz ~2.1 bilhões de combinações (36^6)
+ */
+function generateAccessCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Sem I/O/0/1 para evitar confusão
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
+
+/**
+ * Validar login do motorista (CPF + Código de Acesso)
+ * Retorna o motorista se válido, null se inválido
+ */
+async function firebaseValidateDriverLogin(cpf, accessCode) {
+    const cleanCPF = cpf.replace(/\D/g, '');
+    try {
+        const snapshot = await driversRef.orderByChild('cpf').equalTo(cleanCPF).once('value');
+        if (!snapshot.exists()) return null;
+
+        const data = snapshot.val();
+        const key = Object.keys(data)[0];
+        const driver = { ...data[key], firebaseKey: key };
+
+        // Validar código de acesso (case-insensitive)
+        if (!driver.codigoAcesso) return null;
+        if (driver.codigoAcesso.toUpperCase() !== accessCode.toUpperCase().trim()) return null;
+
+        // Verificar se motorista está ativo
+        if (driver.ativo === false) return null;
+
+        return driver;
+    } catch (error) {
+        console.error('Erro ao validar login:', error);
+        return null;
+    }
+}
+
+/**
+ * Regenerar código de acesso de um motorista
+ * Retorna o novo código gerado
+ */
+async function firebaseRegenerateAccessCode(id) {
+    try {
+        const newCode = generateAccessCode();
+        await driversRef.child(id.toString()).update({ codigoAcesso: newCode });
+        console.log(' Código de acesso regenerado para motorista:', id);
+        return newCode;
+    } catch (error) {
+        console.error('Erro ao regenerar código:', error);
+        return null;
+    }
+}
+
+/**
+ * Gerar token de sessão com TTL (24 horas)
+ */
+function generateSessionToken() {
+    const token = generateAccessCode() + generateAccessCode() + Date.now().toString(36);
+    const expiry = Date.now() + (24 * 60 * 60 * 1000); // 24h
+    return { token, expiry };
+}
+
+/**
+ * Verificar se a sessão do motorista é válida (não expirada)
+ */
+function isSessionValid() {
+    const session = JSON.parse(localStorage.getItem('driverSession') || 'null');
+    if (!session || !session.expiry) return false;
+    if (Date.now() > session.expiry) {
+        // Sessão expirada  limpar dados
+        localStorage.removeItem('driverSession');
+        localStorage.removeItem('driverData');
+        localStorage.removeItem('driverSignature');
+        localStorage.removeItem('signatureEvidence');
+        return false;
+    }
+    return true;
+}
+
+                const addedDriver = await firebaseFindDriverByName(newDriver.nome);
+                const code = addedDriver ? addedDriver.codigoAcesso : 'N/A';
+                showAccessCodeModal(newDriver.nome, code, newDriver.email);
             } catch (error) {
                 console.error('❌ Erro ao cadastrar:', error);
                 alert('Erro ao cadastrar motorista: ' + error.message);

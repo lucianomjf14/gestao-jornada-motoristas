@@ -3970,6 +3970,12 @@
         let capturedSignatureData = null;
 
         function initCompletionSystem() {
+            // Verificar sessão válida (v2.0.0)
+            if (typeof isSessionValid === 'function' && !isSessionValid()) {
+                localStorage.removeItem('driverData');
+                window.location.href = 'login.html';
+                return;
+            }
             // Get driver data from localStorage
             driverData = JSON.parse(localStorage.getItem('driverData') || 'null');
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -298,6 +298,19 @@
             }
         }
     </style>
+    <script>
+        // Session guard (v2.0.0)
+        (function() {
+            try {
+                var s = JSON.parse(localStorage.getItem('driverSession') || 'null');
+                if (!s || !s.expiry || Date.now() > s.expiry) {
+                    localStorage.removeItem('driverData');
+                    localStorage.removeItem('driverSession');
+                    window.location.href = 'login.html';
+                }
+            } catch(e) { window.location.href = 'login.html'; }
+        })();
+    </script>
 </head>
 
 <body>

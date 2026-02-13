@@ -455,6 +455,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar sessão válida (v2.0.0)
+            if (typeof isSessionValid === 'function' && !isSessionValid()) {
+                localStorage.removeItem('driverData');
+                window.location.href = 'login.html';
+                return;
+            }
             // 1. Verificar modo de visualização (Admin ou Usuário)
             const viewDriver = JSON.parse(localStorage.getItem('viewCertificateDriver') || 'null');
 

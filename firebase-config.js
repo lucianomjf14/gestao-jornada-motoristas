@@ -1,4 +1,4 @@
-// =============================================
+﻿// =============================================
 // FIREBASE CONFIGURATION
 // Sistema de Gestão de Jornada de Motoristas
 // =============================================
@@ -137,6 +137,7 @@ async function firebaseAddDriver(driver) {
             ...driver,
             id: maxId + 1,
             cpf: driver.cpf.replace(/\D/g, ''),
+            codigoAcesso: generateAccessCode(),
             ativo: true
         };
 
@@ -326,5 +327,88 @@ async function firebaseCheckAdminPassword(password) {
     }
 }
 
-// Log de inicialização
-console.log('🔥 Firebase Config carregado!');
+
+// =============================================
+// ACCESS CODE AUTHENTICATION (v2.0.0)
+// =============================================
+
+/**
+ * Gerar codigo de acesso aleatorio (6 caracteres alfanumericos)
+ * Produz ~2.1 bilhoes de combinacoes (36^6)
+ */
+function generateAccessCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
+
+/**
+ * Validar login do motorista (CPF + Codigo de Acesso)
+ */
+async function firebaseValidateDriverLogin(cpf, accessCode) {
+    const cleanCPF = cpf.replace(/\D/g, '');
+    try {
+        const snapshot = await driversRef.orderByChild('cpf').equalTo(cleanCPF).once('value');
+        if (!snapshot.exists()) return null;
+
+        const data = snapshot.val();
+        const key = Object.keys(data)[0];
+        const driver = { ...data[key], firebaseKey: key };
+
+        if (!driver.codigoAcesso) return null;
+        if (driver.codigoAcesso.toUpperCase() !== accessCode.toUpperCase().trim()) return null;
+
+        if (driver.ativo === false) return null;
+
+        return driver;
+    } catch (error) {
+        console.error('Erro ao validar login:', error);
+        return null;
+    }
+}
+
+/**
+ * Regenerar codigo de acesso de um motorista
+ */
+async function firebaseRegenerateAccessCode(id) {
+    try {
+        const newCode = generateAccessCode();
+        await driversRef.child(id.toString()).update({ codigoAcesso: newCode });
+        console.log('Codigo de acesso regenerado para motorista:', id);
+        return newCode;
+    } catch (error) {
+        console.error('Erro ao regenerar codigo:', error);
+        return null;
+    }
+}
+
+/**
+ * Gerar token de sessao com TTL (24 horas)
+ */
+function generateSessionToken() {
+    const token = generateAccessCode() + generateAccessCode() + Date.now().toString(36);
+    const expiry = Date.now() + (24 * 60 * 60 * 1000);
+    return { token, expiry };
+}
+
+/**
+ * Verificar se a sessao do motorista e valida (nao expirada)
+ */
+function isSessionValid() {
+    const session = JSON.parse(localStorage.getItem('driverSession') || 'null');
+    if (!session || !session.expiry) return false;
+    if (Date.now() > session.expiry) {
+        localStorage.removeItem('driverSession');
+        localStorage.removeItem('driverData');
+        localStorage.removeItem('driverSignature');
+        localStorage.removeItem('signatureEvidence');
+        return false;
+    }
+    return true;
+}
+
+// Log de inicializacao
+console.log('Firebase Config carregado (v2.0.0)');
