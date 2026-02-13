@@ -1,0 +1,50 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+firebase-debug.log*
+firebase-debug.*.log*
+
+# Firebase cache
+.firebase/
+
+# Variáveis de ambiente (NUNCA commitar)
+.env
+.env.local
+.env.production
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+lib-cov
+coverage
+.nyc_output
+
+# Dependencies
+node_modules/
+bower_components/
+
+# Build
+build/Release
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Optional
+.npm
+.eslintcache
+.node_repl_history
+*.tgz
+.yarn-integrity
+.dataconnect

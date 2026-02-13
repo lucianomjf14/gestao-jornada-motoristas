@@ -1,0 +1,38 @@
+{
+    "rules": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "drivers": {
+            ".indexOn": [
+                "cpf",
+                "empresa",
+                "nome"
+            ],
+            "$driverId": {
+                "cpf": {
+                    ".validate": "newData.isString() && newData.val().length > 0"
+                },
+                "nome": {
+                    ".validate": "newData.isString() && newData.val().length > 0"
+                },
+                "empresa": {
+                    ".validate": "newData.isString()"
+                }
+            }
+        },
+        "trainingRecords": {
+            ".indexOn": [
+                "cpf"
+            ],
+            "$cpf": {
+                "trainingCompleted": {
+                    ".validate": "newData.isBoolean()"
+                }
+            }
+        },
+        "config": {
+            ".read": true,
+            ".write": false
+        }
+    }
+}
